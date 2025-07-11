@@ -57,18 +57,21 @@ USER node
 
 WORKDIR /directus
 
-ENV \
-	DB_CLIENT="sqlite3" \
-	DB_FILENAME="/directus/database/database.sqlite" \
-	NODE_ENV="production" \
-	NPM_CONFIG_UPDATE_NOTIFIER="false"
+# Las variables de entorno serán inyectadas por Coolify.
+# Quitando las predeterminadas para evitar conflictos.
+# ENV \
+# 	DB_CLIENT="sqlite3" \
+# 	DB_FILENAME="/directus/database/database.sqlite" \
+# 	NODE_ENV="production" \
+# 	NPM_CONFIG_UPDATE_NOTIFIER="false"
 
 COPY --from=builder --chown=node:node /directus/ecosystem.config.cjs .
 COPY --from=builder --chown=node:node /directus/dist .
 
 EXPOSE 8055
 
-CMD : \
-	&& node cli.js bootstrap \
-	&& pm2-runtime start ecosystem.config.cjs \
-	;
+# Corrección del CMD:
+# Se utiliza un script de shell para ejecutar los comandos en secuencia.
+# 1. 'node cli.js bootstrap' aplica las migraciones y prepara la base de datos.
+# 2. 'pm2-runtime' inicia el servidor de producción.
+CMD ["sh", "-c", "node cli.js bootstrap && pm2-runtime start ecosystem.config.cjs"]
